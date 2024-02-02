@@ -1,6 +1,0 @@
----
-- name: "Restart service {{ osquery_service_name }}"
-  become: true
-  ansible.builtin.service:
-    name: "{{ osquery_service_name }}"
-    state: restarted

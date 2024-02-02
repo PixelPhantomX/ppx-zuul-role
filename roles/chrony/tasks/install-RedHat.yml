@@ -1,6 +1,0 @@
----
-- name: Install package
-  become: true
-  ansible.builtin.dnf:
-    name: "{{ chrony_package_name }}"
-    state: present

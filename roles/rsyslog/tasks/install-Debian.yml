@@ -1,7 +1,0 @@
----
-- name: Install rsyslog package
-  become: true
-  ansible.builtin.apt:
-    name: "{{ rsyslog_package_name }}"
-    state: present
-    lock_timeout: "{{ apt_lock_timeout | default(300) }}"

@@ -1,9 +1,0 @@
----
-wireguard_users: []
-wireguard_mtu: 1360
-wireguard_server_address: 192.168.48.254/24
-wireguard_listen_port: 51820
-wireguard_server_public_address: WIREGUARD_PUBLIC_IP_ADDRESS
-wireguard_endpoint: "{{ wireguard_server_public_address }}:{{ wireguard_listen_port }}"
-wireguard_create_client_config: false
-wireguard_client_allowed_ips: 192.168.16.0/20

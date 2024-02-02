@@ -1,6 +1,0 @@
----
-- name: Restart phpmyadmin service
-  become: true
-  ansible.builtin.service:
-    name: "{{ phpmyadmin_service_name }}"
-    state: restarted

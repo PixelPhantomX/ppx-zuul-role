@@ -1,6 +1,0 @@
----
-- name: Restart scaphandre service
-  become: true
-  ansible.builtin.service:
-    name: "{{ scaphandre_service_name }}"
-    state: restarted

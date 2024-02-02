@@ -1,6 +1,0 @@
----
-- name: Restart virtualbmc service
-  become: true
-  ansible.builtin.service:
-    name: "{{ virtualbmc_service_name }}"
-    state: restarted

@@ -1,5 +1,0 @@
----
-collections:
-  - name: https://github.com/osism/ansible-collection-commons.git
-    type: git
-    version: main

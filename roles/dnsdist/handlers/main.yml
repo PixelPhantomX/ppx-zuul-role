@@ -1,6 +1,0 @@
----
-- name: Restart dnsdist service
-  become: true
-  ansible.builtin.service:
-    name: "{{ dnsdist_service_name }}"
-    state: restarted

@@ -1,4 +1,0 @@
----
-operator_user: zuul
-operator_group: zuul
-kolla_internal_vip_address: 127.0.0.1
