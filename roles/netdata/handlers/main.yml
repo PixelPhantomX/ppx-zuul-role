@@ -1,0 +1,6 @@
+---
+- name: "Restart service {{ netdata_service_name }}"
+  become: true
+  ansible.builtin.service:
+    name: "{{ netdata_service_name }}"
+    state: restarted

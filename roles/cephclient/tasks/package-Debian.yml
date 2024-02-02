@@ -1,0 +1,57 @@
+---
+- name: Add repository key with apt-key
+  become: true
+  ansible.builtin.apt_key:
+    url: "{{ cephclient_debian_repository_key }}"
+  when:
+    - cephclient_configure_repository|bool
+    - ansible_distribution_version is version('22.04', '<')
+
+- name: Add repository gpg key
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ cephclient_debian_repository_key }}"
+    dest: /etc/apt/trusted.gpg.d/cephclient.asc
+    mode: 0644
+    owner: root
+    group: root
+  when:
+    - cephclient_configure_repository|bool
+    - ansible_distribution_version is version('22.04', '>=')
+
+- name: Add repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "{{ cephclient_debian_repository }}"
+    state: present
+    update_cache: true
+    mode: 0644
+  when: cephclient_configure_repository|bool
+
+- name: Install required packages
+  become: true
+  ansible.builtin.apt:
+    name: "{{ cephclient_debian_packages }}"
+    state: present
+    lock_timeout: "{{ apt_lock_timeout | default(300) }}"
+
+- name: Copy configuration files
+  become: true
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+    owner: root
+    group: root
+  loop:
+    - src: ceph.conf.j2
+      dest: "/etc/ceph/ceph.conf"
+
+- name: Copy keyring file
+  become: true
+  ansible.builtin.template:
+    src: ceph-keyring-config.j2
+    dest: "/etc/ceph/ceph.{{ cephclient_keyring_name }}.keyring"
+    owner: root
+    group: root
+    mode: 0600

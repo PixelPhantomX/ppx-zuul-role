@@ -1,0 +1,54 @@
+---
+- name: Install apt-transport-https package
+  become: true
+  ansible.builtin.apt:
+    name: apt-transport-https
+    state: present
+    lock_timeout: "{{ apt_lock_timeout | default(300) }}"
+  when: netdata_configure_repository|bool
+  changed_when: false
+
+- name: Add repository gpg key with apt-key
+  become: true
+  ansible.builtin.apt_key:
+    url: "{{ netdata_debian_repository_key }}"
+  when:
+    - netdata_configure_repository|bool
+    - ansible_distribution_version is version('22.04', '<')
+
+- name: Add repository gpg key
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ netdata_debian_repository_key }}"
+    dest: /etc/apt/trusted.gpg.d/netdata.asc
+    mode: 0644
+    owner: root
+    group: root
+  when:
+    - netdata_configure_repository|bool
+    - ansible_distribution_version is version('22.04', '>=')
+
+- name: Add repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "{{ netdata_debian_repository }}"
+    state: present
+    filename: netdata
+    update_cache: true
+    mode: 0644
+  when: netdata_configure_repository|bool
+
+- name: "Install package {{ netdata_package_name }}"
+  become: true
+  ansible.builtin.apt:
+    name: "{{ netdata_package_name }}"
+    state: latest
+    lock_timeout: "{{ apt_lock_timeout | default(300) }}"
+  notify: "Restart service {{ netdata_service_name }}"
+
+- name: "Start/enable service {{ netdata_service_name }}"
+  become: true
+  ansible.builtin.service:
+    name: "{{ netdata_service_name }}"
+    state: started
+    enabled: true

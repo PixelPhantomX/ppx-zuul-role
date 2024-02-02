@@ -1,0 +1,31 @@
+---
+frr_package_name: frr
+frr_service_name: frr
+
+frr_sysctl_defaults:
+  - name: net.ipv4.ip_forward
+    value: 1
+  - name: net.ipv4.conf.all.send_redirects
+    value: 0
+  - name: net.ipv4.conf.all.accept_redirects
+    value: 0
+  - name: net.ipv4.fib_multipath_hash_policy
+    value: 1
+  - name: net.ipv4.conf.default.ignore_routes_with_linkdown
+    value: 1
+  - name: net.ipv4.conf.all.rp_filter
+    value: 2
+frr_sysctl_extra: []
+frr_sysctl: "{{ frr_sysctl_defaults + frr_sysctl_extra }}"
+
+frr_dummy_interface: dummy0
+frr_uplinks: []
+frr_local_as: 4200000000
+frr_type: leaf
+frr_loopback_v4: 127.0.0.42
+frr_loopback_v6: 2001:db8:cafe:f00d::42
+
+frr_externalbackup_v4: []
+frr_externalbackup_v6: []
+frr_internalbackup_v4: []
+frr_internalbackup_v6: []

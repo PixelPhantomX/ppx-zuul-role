@@ -1,0 +1,6 @@
+---
+- name: Restart homer service
+  become: true
+  ansible.builtin.service:
+    name: "{{ homer_service_name }}"
+    state: restarted

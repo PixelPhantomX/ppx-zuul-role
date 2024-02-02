@@ -1,0 +1,318 @@
+---
+##########################
+# docker
+
+docker_registry: index.docker.io
+docker_registry_ansible: quay.io
+docker_registry_service: "{{ docker_registry }}"
+
+docker_registry_ara_server: "{{ docker_registry_ansible }}"
+docker_registry_inventory_reconciler: "{{ docker_registry_ansible }}"
+docker_registry_mariadb: "{{ docker_registry_service }}"
+docker_registry_osism: "{{ docker_registry_ansible }}"
+docker_registry_osism_netbox: "{{ docker_registry_ansible }}"
+docker_registry_receptor: "{{ docker_registry_ansible }}"
+docker_registry_redis: "{{ docker_registry_service }}"
+docker_registry_vault: "{{ docker_registry_service }}"
+
+docker_network_mtu: 1500
+
+##########################
+# generic
+
+manager_network: 172.31.101.0/27
+
+manager_service_name: "docker-compose@manager"
+manager_service_restart: true
+
+##########################
+# directories
+
+ansible_directory: /opt/ansible
+archive_directory: /opt/archive
+cache_directory: /opt/ansible/cache
+configuration_directory: /opt/configuration
+logs_directory: /opt/ansible/logs
+secrets_directory: /opt/ansible/secrets
+state_directory: /opt/state
+
+manager_docker_compose_directory: /opt/manager
+manager_configuration_directory: /opt/manager/configuration
+manager_secrets_directory: /opt/manager/secrets
+
+##########################
+# operator user
+
+operator_user: dragon
+operator_group: "{{ operator_user }}"
+
+##########################
+# private keys
+
+deploy_private_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  ...
+  -----END RSA PRIVATE KEY-----
+
+operator_private_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  ...
+  -----END RSA PRIVATE KEY-----
+
+private_keys:
+  deploy: "{{ deploy_private_key }}"
+  operator: "{{ operator_private_key }}"
+
+##########################
+# packages
+
+required_packages_manager:
+  - jq
+  - python3-virtualenv
+
+##########################
+# netbox integration
+
+enable_netbox: "{{ netbox_enable }}"
+netbox_enable: false
+netbox_api_url: ""
+netbox_api_token: ""
+
+##########################
+# opensearch integration
+#
+manager_opensearch_enable: true
+
+manager_opensearch_address: 127.0.0.1
+manager_opensearch_port: 9200
+manager_opensearch_protocol: https
+
+##########################
+# inventory-reconciler
+
+inventory_reconciler_tag: latest
+inventory_reconciler_image: "{{ docker_registry_inventory_reconciler }}/osism/inventory-reconciler:{{ inventory_reconciler_tag }}"
+
+##########################
+# ansible services
+
+ansible_services_defaults:
+  # The osism-ansible service must always be in the 1st position.
+  - name: osism-ansible
+    container_name: "{{ osism_ansible_container_name }}"
+    tag: "{{ osism_ansible_tag }}"
+    image: "{{ osism_ansible_image }}"
+    # The service is disabled here because it is always enabled. But it is necessary to
+    # have an additional entry for osism-ansible in the ansible_services_defaults to access
+    # the defaults.
+    enable: false
+    mem_limit: "{{ manager_mem_limit }}"
+    mem_reservation: "{{ manager_mem_reservation }}"
+    cpus: "{{ manager_cpus }}"
+  - name: ceph-ansible
+    container_name: "{{ ceph_ansible_container_name }}"
+    tag: "{{ ceph_ansible_tag }}"
+    image: "{{ ceph_ansible_image }}"
+    enable: "{{ enable_ceph_ansible }}"
+    mem_limit: "{{ manager_mem_limit }}"
+    mem_reservation: "{{ manager_mem_reservation }}"
+    cpus: "{{ manager_cpus }}"
+  - name: kolla-ansible
+    container_name: "{{ kolla_ansible_container_name }}"
+    tag: "{{ kolla_ansible_tag }}"
+    image: "{{ kolla_ansible_image }}"
+    enable: "{{ enable_kolla_ansible }}"
+    mem_limit: "{{ manager_mem_limit }}"
+    mem_reservation: "{{ manager_mem_reservation }}"
+    cpus: "{{ manager_cpus }}"
+ansible_services_extra: []
+ansible_services: "{{ ansible_services_defaults + ansible_services_extra }}"
+
+##########################
+# osism-ansible
+
+osism_ansible_container_name: osism-ansible
+
+osism_ansible_tag: latest
+osism_ansible_image: "{{ docker_registry_ansible }}/osism/osism-ansible:{{ osism_ansible_tag }}"
+
+##########################
+# ceph-ansible
+
+enable_ceph_ansible: "{{ ceph_ansible_enable }}"
+ceph_ansible_enable: true
+
+ceph_ansible_container_name: ceph-ansible
+
+ceph_ansible_tag: pacific
+ceph_ansible_image: "{{ docker_registry_ansible }}/osism/ceph-ansible:{{ ceph_ansible_tag }}"
+
+##########################
+# kolla-ansible
+
+enable_kolla_ansible: "{{ kolla_ansible_enable }}"
+kolla_ansible_enable: true
+
+kolla_ansible_container_name: kolla-ansible
+
+kolla_ansible_tag: xena
+kolla_ansible_image: "{{ docker_registry_ansible }}/osism/kolla-ansible:{{ kolla_ansible_tag }}"
+
+##########################
+# redis
+
+# renovate: datasource=docker depName=redis
+manager_redis_tag: '7.2.4-alpine'
+manager_redis_image: "{{ docker_registry_redis }}/library/redis:{{ manager_redis_tag }}"
+
+##########################
+# ara
+
+enable_ara: "{{ ara_enable }}"
+ara_enable: true
+
+ara_username: ara
+ara_password: password
+
+# ara server
+
+ara_server_traefik: false
+
+ara_server_host: "{{ ansible_default_ipv4.address }}"
+ara_server_port: 8120
+
+ara_threads: 1
+ara_worker_class: gevent
+ara_worker_connections: 1000
+ara_workers: 5
+
+# renovate: datasource=docker depName=quay.io/osism/ara-server
+ara_server_tag: '1.7.0'
+ara_server_image: "{{ docker_registry_ara_server }}/osism/ara-server:{{ ara_server_tag }}"
+
+# mariadb (used by ara)
+
+ara_server_database_type: mysql
+ara_server_mariadb_volume_type: volume
+
+ara_server_mariadb_host: "{{ ansible_default_ipv4.address }}"
+ara_server_mariadb_port: 3306
+
+ara_server_mariadb_username: ara
+ara_server_mariadb_password: password
+ara_server_mariadb_databasename: "{{ ara_server_mariadb_username }}"
+
+# renovate: datasource=docker depName=mariadb
+ara_server_mariadb_tag: '11.2.2'
+ara_server_mariadb_image: "{{ docker_registry_mariadb }}/library/mariadb:{{ ara_server_mariadb_tag }}"
+
+##########################
+# celery
+
+enable_celery: "{{ celery_enable }}"
+celery_enable: true
+
+osism_tag: latest
+osism_image: "{{ docker_registry_osism }}/osism/osism:{{ osism_tag }}"
+
+osism_netbox_tag: latest
+osism_netbox_image: "{{ docker_registry_osism_netbox }}/osism/osism-netbox:{{ osism_netbox_tag }}"
+
+flower_host: "{{ ansible_default_ipv4.address }}"
+flower_port: 5555
+flower_traefik: false
+
+osism_api_host: "{{ ansible_default_ipv4.address }}"
+osism_api_port: 8000
+
+##########################
+# vault
+
+vault_container_name: vault
+
+enable_vault: false
+
+vault_host: "{{ ansible_default_ipv4.address }}"
+vault_port: 8200
+
+# renovate: datasource=docker depName=hashicorp/vault
+vault_tag: '1.15.5'
+vault_image: "{{ docker_registry_vault }}/hashicorp/vault:{{ vault_tag }}"
+
+vault_output_key_shares: false
+vault_write_key_shares: false
+
+vault_key_shares_path: "{{ manager_secrets_directory }}/vault_key_shares.yml"
+
+##########################
+# wrapper
+
+manager_wrapper_scripts:
+  - osism
+  - osism-ansible
+  - osism-ceph
+  - osism-custom
+  - osism-generic
+  - osism-infrastructure
+  - osism-kolla
+  - osism-manager
+  - osism-monitoring
+  - osism-openstack
+  - osism-run
+  - osism-run-without-secrets
+  - osism-state
+  - osism-update-docker
+  - osism-update-manager
+  - osism-validate
+
+##########################
+# environment
+
+manager_environment_extra: {}
+#   REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+
+##########################
+# listener
+
+enable_listener: false
+manager_listener_broker_uri: "amqp://openstack:password@127.0.0.1:5672/"
+
+##########################
+# service integrations
+
+manager_enable_bifrost: false
+manager_enable_ironic: true
+
+##########################
+# openstack
+
+manager_openstack_os_project_domain_name: Default
+manager_openstack_os_user_domain_name: Default
+manager_openstack_os_project_name: admin
+manager_openstack_os_username: admin
+manager_openstack_os_password: password
+manager_openstack_os_auth_url: http://localhost:5000/v3
+
+##########################
+# traefik
+
+traefik_external_network_name: traefik
+traefik_external_network_cidr: 172.31.254.0/24
+
+##########################
+# replicas
+
+manager_netbox_replicas: 1
+
+##########################
+# other services
+
+beat_enable: true
+flower_enable: false
+
+##########################
+# resources
+
+manager_mem_limit: "{{ ansible_memtotal_mb }}m"
+manager_mem_reservation: 1024m
+manager_cpus: "{{ ansible_processor_vcpus }}"

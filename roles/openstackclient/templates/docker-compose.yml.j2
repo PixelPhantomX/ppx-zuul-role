@@ -1,0 +1,24 @@
+---
+services:
+  openstackclient:
+    container_name: "{{ openstackclient_container_name }}"
+    restart: unless-stopped
+    image: "{{ openstackclient_image }}"
+    command: sleep infinity
+    volumes:
+      - "{{ openstackclient_configuration_directory }}:/configuration:ro"
+      - "{{ openstackclient_data_directory }}:/data:ro"
+      - "/etc/hosts:/etc/hosts:ro"
+      - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
+    environment:
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: {{ docker_network_mtu }}
+    ipam:
+      driver: default
+      config:
+        - subnet:  {{ openstackclient_network }}

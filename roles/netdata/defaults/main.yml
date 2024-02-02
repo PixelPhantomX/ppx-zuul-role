@@ -1,0 +1,57 @@
+---
+##########################
+# internal
+
+netdata_configuration_files:
+  - netdata.conf
+  - stream.conf
+
+##########################
+# services
+
+netdata_service_name: netdata
+
+##########################
+# packages
+
+netdata_package_name: netdata
+
+##########################
+# repository
+
+netdata_configure_repository: false
+
+netdata_debian_repository_key: https://packagecloud.io/netdata/netdata-edge/gpgkey
+netdata_debian_repository: "deb https://packagecloud.io/netdata/netdata-edge/ubuntu/ {{ ansible_distribution_release }} main"
+
+##########################
+# parameters
+
+# client & server
+
+# possible values: [client, server]
+netdata_host_type: client
+
+netdata_api_key: 00000000-0000-0000-0000-000000000000
+netdata_api_host: 127.0.0.1
+netdata_api_port: 19999
+
+netdata_hostname: "{{ inventory_hostname_short }}"
+
+# client
+
+netdata_update_every: 5
+netdata_page_cache_size: 128
+
+# server
+
+netdata_accept_a_streaming_request_every_seconds: 1
+netdata_default_history: 3600
+netdata_enable_cloud: false
+
+# possible values: [dbengine, ram, save, map, none, alloc]
+netdata_memory_mode: map
+
+# NOTE: The more nodes streaming to the server the higher this
+#       value must be set.
+netdata_sys_vm_max_map_count: 262120
